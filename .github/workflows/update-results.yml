@@ -27,14 +27,13 @@ jobs:
       - name: Run scraper + parser
         run: python scripts/scrape_and_parse.py
 
-      - name: Inject new data into HTML
+      - name: Commit and push if data changed
         run: |
-          if [ -f data/students.json ]; then
-            python scripts/inject_data.py
-          else
-            echo "No new data found, skipping inject."
-          fi
-
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Auto-update: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
       - name: Commit and push if data changed
         run: |
           git config user.name "github-actions[bot]"
