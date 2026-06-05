@@ -2,9 +2,11 @@ name: Update Results
 
 on:
   schedule:
-    # Runs every Monday at 6 AM IST (12:30 AM UTC)
     - cron: '30 0 * * 1'
-  workflow_dispatch: # lets you trigger it manually from GitHub UI
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   update:
@@ -26,13 +28,17 @@ jobs:
         run: python scripts/scrape_and_parse.py
 
       - name: Inject new data into HTML
-        run: python scripts/inject_data.py
+        run: |
+          if [ -f data/students.json ]; then
+            python scripts/inject_data.py
+          else
+            echo "No new data found, skipping inject."
+          fi
 
       - name: Commit and push if data changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html data/students.json
+          git add -A
           git diff --cached --quiet || git commit -m "Auto-update: results refreshed $(date -u '+%Y-%m-%d %H:%M UTC')"
           git push
-          
